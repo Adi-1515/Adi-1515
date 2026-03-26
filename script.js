@@ -1,15 +1,16 @@
 fetch("/api/github?username=Adi-1515")
   .then(res => res.json())
   .then(data => {
-    if (data.error) {
-      document.getElementById("output").innerText = data.error;
+    const contributions =
+      data?.data?.user?.contributionsCollection?.contributionCalendar?.totalContributions;
+
+    if (contributions === undefined) {
+      document.getElementById("output").innerText = "Invalid API response";
       return;
     }
 
     document.getElementById("output").innerHTML = `
-      Name: ${data.name || "N/A"} <br>
-      Public Repos: ${data.public_repos} <br>
-      Followers: ${data.followers}
+      Total Contributions: ${contributions}
     `;
   })
   .catch(() => {
