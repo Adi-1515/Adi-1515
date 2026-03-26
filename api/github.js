@@ -1,37 +1,28 @@
 export default async function handler(req, res) {
-    const username = req.query.username;
+    const { username } = req.query;
 
-    const query = {
-        query: `
-        query {
-          user(login: "${username}") {
-            contributionsCollection {
-              contributionCalendar {
-                totalContributions
-              }
-            }
-          }
-        }
-        `
-    };
+    if (!username) {
+        return res.status(400).json({ error: "No username" });
+    }
 
     try {
-        const response = await fetch("https://api.github.com/graphql", {
-            method: "POST",
+        const response = await fetch(`https://api.github.com/users/${username}`, {
             headers: {
-                Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(query)
+                Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
+            }
         });
 
         const data = await response.json();
+
+        if (!response.ok) {
+            return res.status(response.status).json(data);
+        }
 
         res.setHeader("Cache-Control", "s-maxage=3600");
 
         return res.status(200).json(data);
 
-    } catch (err) {
-        return res.status(500).json({ error: "GraphQL error" });
+    } catch {
+        return res.status(500).json({ error: "Server error" });
     }
 }
